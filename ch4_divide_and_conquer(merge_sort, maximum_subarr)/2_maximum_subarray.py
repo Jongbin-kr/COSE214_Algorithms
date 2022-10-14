@@ -43,6 +43,7 @@ def find_maximum_subarr(A, low, high):
             return cross_low, cross_high, cross_sum
 
 
+## Input and Ooutput
 n = int(input())
 
 l = []
