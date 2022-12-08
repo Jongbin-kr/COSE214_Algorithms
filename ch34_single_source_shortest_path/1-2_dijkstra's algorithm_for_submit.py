@@ -64,7 +64,6 @@ for graph_node in graph_node_list[1:]:
 graph_node_list[1].min_dist = 0 
 
 
-s = set() 
 
 h = Min_priority_que(graph_node_list)
 q = h.return_build_min_heap()
@@ -86,6 +85,7 @@ def relax(min_node):
             adj_node.pred = min_node
     
 
+s = set() 
 for n in range(1, len(q.arr)):
     min_node = q.return_min_heap_extract()
     s = s | {min_node}
