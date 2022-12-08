@@ -46,6 +46,9 @@ class Min_priority_que(Min_heap):
         return min_node
         
         
+#####################################
+## main code
+#####################################
 
 ## input graph nodes' name, create graph nodes and append them into graph node list
 input_vertex_name_list = input().split(',')
