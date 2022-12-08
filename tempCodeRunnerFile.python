@@ -1,42 +1,19 @@
-import heapq
-import copy
 
-input_n = int(input())
-
-input_list = [0]*input_n
-value_list = [0]*input_n
-
-for i in range(input_n):
-    input_list[i] = int(input())
-
-value_list = copy.deepcopy(input_list)
-heapq.heapify(value_list)
-value_list = ['x'] + value_list
-
-
-
-
-class Huff_node():    
-    def __init__(self, freq, left_node=None, right_node=None):
-        self.freq = freq
-        self.left_node = left_node
-        self.right_node = right_node
-        self.zero_one = ''
-        self.final_code = ''
-        
-    def __lt__(self, other):
-        return self.freq < other.freq
-
-    def __gt__(self, other):
-        return self.freq > other.freq
+class Graph_node():
     
+    def __init__(self, vertex_name):
+        self.vertex_name = vertex_name
+        self.edge_dict = {} 
+        self.pred = '' 
+        self.min_dist = 0
+
 
 class Min_heap():
-    def __init__(self, array):
-        self.arr = array
+    def __init__(self, graph_node_list):
+        self.arr = graph_node_list
         self.heap_size = len(self.arr) -1
 
-    def build_min_heap(self):
+    def return_build_min_heap(self):
         for i in range(1, (self.heap_size//2)+1)[::-1]:
             self.min_heapify(i)
         return self
@@ -46,103 +23,88 @@ class Min_heap():
         l = (2 * i)
         r = (2 * i) + 1
         
-        if l < self.heap_size and self.arr[l].freq < self.arr[i].freq:
+        if l < self.heap_size and self.arr[l].min_dist < self.arr[i].min_dist:
             smallest = l
         
-        if r <= self.heap_size and self.arr[r].freq < self.arr[smallest].freq:
+        if r <= self.heap_size and self.arr[r].min_dist < self.arr[smallest].min_dist:
             smallest = r
         
         if smallest != i:
-            self.arr[i], self.arr[smallest] = self.arr[smallest], self.arr[i] ## swapping
+            self.arr[i], self.arr[smallest] = self.arr[smallest], self.arr[i] 
             self.min_heapify(smallest)
             
-
-
-
-            
+                  
 class Min_priority_que(Min_heap):
-    
-    def return_minimum_value(self):
-        print('node:', self.arr[1], 'freq:', self.arr[1].freq)
-        return self.arr[1]
-    
-    def return_min_heap_extract(self):
-        if self.heap_size < 2:
-            return self.arr[-1]
-        
-        # min_node = self.arr[1]
-        # self.arr[1] = self.arr[self.heap_size] ## 맨 위 노드와 맨 아래 노드 바꾸기
-        min_node = min(self.arr[1:])
-        
+
+    def return_min_heap_extract(self):       
+        min_node = self.arr[1]
+        self.arr[1] = self.arr[self.heap_size] ## input the largest node into first index to min heapify
         self.heap_size -= 1
-        self.arr = self.arr[1:]
         self.min_heapify(1)
         return min_node
-    
-    def min_heap_decrease_key(self, i, new_node): ## i는 value를 증가시킬 target의 index
         
-        if new_node.freq > self.arr[i].freq:
-            print("Current value is already smaller than new value")
-            return None
-        
-        self.arr[i] = new_node
-        
-        while i > 1 and self.arr[i // 2].freq > self.arr[i].freq:
-            self.arr[i], self.arr[i // 2] = self.arr[i // 2], self.arr[i]
-            i = i // 2
-       
-        self.arr[1:] = sorted(self.arr[1:], key = lambda x: x.freq)
-
-            
-    
-    def min_heap_insert(self, key):
-        self.heap_size += 1
-        self.arr += [Huff_node(float("inf"))]
-        self.min_heap_decrease_key(self.heap_size, key)
         
 
-            
+input_vertex_name_list = input().split(',')
+graph_node_list = ['X']
+for vertex_name in input_vertex_name_list:
+    new_node = Graph_node(vertex_name)
+    graph_node_list.append(new_node)
 
-node_list = ['x'] + [0] * (len(value_list)-1)
-for i in range(1, len(value_list)):  ## 1~6
-    node_list[i] = Huff_node(value_list[i])
+input_how_many_edges = int(input())
     
-node_que = Min_priority_que(node_list).build_min_heap()
+for i in range(input_how_many_edges):
+    src, dest, dist = input().split(',')
+
+    for i in range(1, len(graph_node_list)):
+        if src == graph_node_list[i].vertex_name:
+            graph_node_list[i].edge_dict[dest] = int(dist)
 
 
-for i in range(len(node_que.arr) - 2):
-    left_node = node_que.return_min_heap_extract()
-    left_node.zero_one = 0
+
+
+
+
+for graph_node in graph_node_list[1:]:
+    graph_node.min_dist = float("inf")
+    graph_node.pred = 'NIL'
+graph_node_list[1].min_dist = 0 
+
+
+h = Min_priority_que(graph_node_list)
+q = h.return_build_min_heap()
+
+def relax(min_node):  
+    adj_node_names = list(min_node.edge_dict)
     
-    right_node = node_que.return_min_heap_extract()
-    right_node.zero_one = 1
-    new_node = Huff_node(left_node.freq + right_node.freq, left_node, right_node)
-    # print('*** whole freq:', new_node.freq)
-    # print('*** left freq:', new_node.left_node.freq)
-    # print('*** right freq:', new_node.right_node.freq)
-    
-    node_que.min_heap_insert(new_node)
-    
-    
-final_code_list = []
-def make_final_code(node, code = ''):
-    new_code = code + str(node.zero_one)
-    
-    if node.left_node:
-        make_final_code(node.left_node, new_code)
+    adj_node_list = []
+    for adj_node_name in adj_node_names:
+        for i in range(1, len(q.arr)):
+            if adj_node_name == q.arr[i].vertex_name:
+                adj_node_list.append(q.arr[i])
         
-    if node.right_node:
-        make_final_code(node.right_node, new_code)
+    for adj_node in adj_node_list:
+        if adj_node.min_dist > min_node.min_dist + min_node.edge_dict[adj_node.vertex_name]:
+            adj_node.min_dist = min_node.min_dist + min_node.edge_dict[adj_node.vertex_name]
+            adj_node.pred = min_node
     
-    if (not node.left_node) and (not node.right_node):
-        node.final_code = new_code
-        final_code_list.append((node.freq, node.final_code))
-        
-root_node = max(node_que.arr)
-make_final_code(root_node)
+    q.return_build_min_heap()
+    
+
+s = set()
+
+for n in range(1, len(q.arr)):
+    min_node = q.return_min_heap_extract()
+    s = s | {min_node}
+    relax(min_node)
+    
+    
+
+l = sorted(list(s), key = lambda x: x.vertex_name)
+
+for x in l:
+    print(
+        x.min_dist
+    )
 
 
-for original_value in input_list:
-    for value, code in final_code_list:
-        if original_value == value:
-            print(code)
